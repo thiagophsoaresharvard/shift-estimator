@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shift Estimator</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+    color: #e8ecf4;
+    min-height: 100vh;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .container {
+    width: 100%;
+    max-width: 440px;
+    background: rgba(20, 25, 50, 0.85);
+    border: 1px solid rgba(100, 180, 255, 0.2);
+    border-radius: 16px;
+    padding: 28px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+  }
+  h1 {
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: #64b4ff;
+    letter-spacing: 0.5px;
+  }
+  .subtitle {
+    font-size: 13px;
+    color: #8a93a8;
+    margin-bottom: 24px;
+  }
+  .input-group { margin-bottom: 16px; }
+  label {
+    display: block;
+    font-size: 13px;
+    color: #a8b2c8;
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+  input {
+    width: 100%;
+    padding: 14px 16px;
+    font-size: 17px;
+    background: rgba(10, 15, 35, 0.7);
+    border: 1px solid rgba(100, 180, 255, 0.25);
+    border-radius: 10px;
+    color: #e8ecf4;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    -webkit-appearance: none;
+  }
+  input:focus {
+    outline: none;
+    border-color: #64b4ff;
+    box-shadow: 0 0 0 3px rgba(100, 180, 255, 0.15);
+  }
+  button {
+    width: 100%;
+    padding: 14px;
+    font-size: 16px;
+    font-weight: 600;
+    background: linear-gradient(135deg, #64b4ff 0%, #4a90e2 100%);
+    color: #0a0e27;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-top: 8px;
+    letter-spacing: 0.3px;
+    transition: transform 0.1s, box-shadow 0.2s;
+  }
+  button:active { transform: scale(0.98); }
+  .results {
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid rgba(100, 180, 255, 0.15);
+    display: none;
+  }
+  .results.show {
+    display: block;
+    animation: fadeIn 0.3s ease;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .result-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px;
+    margin-bottom: 8px;
+    border-radius: 10px;
+    background: rgba(10, 15, 35, 0.5);
+  }
+  .result-row.base {
+    background: rgba(100, 180, 255, 0.1);
+    border: 1px solid rgba(100, 180, 255, 0.3);
+  }
+  .result-label { font-size: 14px; color: #a8b2c8; }
+  .result-value { font-size: 20px; font-weight: 600; color: #e8ecf4; }
+  .result-row.base .result-value { color: #64b4ff; font-size: 24px; }
+  .result-row.min .result-value { color: #ff9b6a; }
+  .result-row.max .result-value { color: #6ae89b; }
+  .per-cover {
+    text-align: center;
+    margin-top: 16px;
+    padding: 12px;
+    font-size: 13px;
+    color: #8a93a8;
+    background: rgba(10, 15, 35, 0.4);
+    border-radius: 8px;
+  }
+  .per-cover span { color: #e8ecf4; font-weight: 500; }
+  .actual-section {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(100, 180, 255, 0.15);
+  }
+  .secondary-btn {
+    background: linear-gradient(135deg, #4a5578 0%, #3a4560 100%);
+    color: #e8ecf4;
+    margin-top: 8px;
+  }
+  .variance {
+    margin-top: 16px;
+    padding: 16px;
+    border-radius: 10px;
+    text-align: center;
+    display: none;
+  }
+  .variance.show {
+    display: block;
+    animation: fadeIn 0.3s ease;
+  }
+  .variance.positive {
+    background: rgba(106, 232, 155, 0.12);
+    border: 1px solid rgba(106, 232, 155, 0.35);
+  }
+  .variance.negative {
+    background: rgba(255, 155, 106, 0.12);
+    border: 1px solid rgba(255, 155, 106, 0.35);
+  }
+  .variance.onTarget {
+    background: rgba(100, 180, 255, 0.12);
+    border: 1px solid rgba(100, 180, 255, 0.35);
+  }
+  .variance-amount { font-size: 24px; font-weight: 600; margin-bottom: 4px; }
+  .variance.positive .variance-amount { color: #6ae89b; }
+  .variance.negative .variance-amount { color: #ff9b6a; }
+  .variance.onTarget .variance-amount { color: #64b4ff; }
+  .variance-label { font-size: 13px; color: #a8b2c8; }
+  .variance-detail { font-size: 12px; color: #8a93a8; margin-top: 6px; }
+</style>
+</head>
+<body>
+  <div class="container">
+    <h1>Shift Estimator</h1>
+    <p class="subtitle">Yvonne's — base ± 25%</p>
+
+    <div class="input-group">
+      <label for="covers">Covers</label>
+      <input type="number" id="covers" inputmode="numeric" placeholder="e.g. 190">
+    </div>
+
+    <div class="input-group">
+      <label for="servers">Servers on floor</label>
+      <input type="number" id="servers" inputmode="numeric" placeholder="e.g. 6">
+    </div>
+
+    <div class="input-group">
+      <label for="seats">Seats in your section</label>
+      <input type="number" id="seats" inputmode="numeric" placeholder="e.g. 18">
+    </div>
+
+    <button onclick="calculate()">Calculate</button>
+
+    <div class="results" id="results">
+      <div class="result-row min">
+        <span class="result-label">Bad night (min)</span>
+        <span class="result-value" id="minVal">—</span>
+      </div>
+      <div class="result-row base">
+        <span class="result-label">Average</span>
+        <span class="result-value" id="baseVal">—</span>
+      </div>
+      <div class="result-row max">
+        <span class="result-label">Good night (max)</span>
+        <span class="result-value" id="maxVal">—</span>
+      </div>
+      <div class="per-cover">
+        Per cover: <span id="perCover">—</span>
+      </div>
+
+      <div class="actual-section">
+        <label for="actual" style="margin-top: 20px;">Actual earnings (end of shift)</label>
+        <input type="number" id="actual" inputmode="decimal" step="0.01" placeholder="e.g. 310.00">
+        <button onclick="compare()" class="secondary-btn">Compare to projection</button>
+        <div class="variance" id="variance"></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  let lastBase = null;
+  let lastMin = null;
+  let lastMax = null;
+
+  function calculate() {
+    const covers = parseFloat(document.getElementById('covers').value);
+    const servers = parseFloat(document.getElementById('servers').value);
+    const seats = parseFloat(document.getElementById('seats').value);
+
+    if (!covers || !servers || !seats || servers <= 0 || seats <= 0) {
+      alert('Please enter valid numbers for all fields.');
+      return;
+    }
+
+    const base = ((covers / servers) / seats) * covers;
+    const min = base * 0.75;
+    const max = base * 1.25;
+    const perCover = base / covers;
+
+    lastBase = base;
+    lastMin = min;
+    lastMax = max;
+
+    const fmt = n => '$' + n.toFixed(2);
+
+    document.getElementById('minVal').textContent = fmt(min);
+    document.getElementById('baseVal').textContent = fmt(base);
+    document.getElementById('maxVal').textContent = fmt(max);
+    document.getElementById('perCover').textContent = fmt(perCover);
+
+    document.getElementById('results').classList.add('show');
+    document.getElementById('variance').classList.remove('show');
+    document.getElementById('actual').value = '';
+  }
+
+  function compare() {
+    const actual = parseFloat(document.getElementById('actual').value);
+    if (!actual || actual < 0 || lastBase === null) {
+      alert('Please enter your actual earnings.');
+      return;
+    }
+
+    const diff = actual - lastBase;
+    const pctDiff = (diff / lastBase) * 100;
+    const fmt = n => '$' + Math.abs(n).toFixed(2);
+    const sign = diff >= 0 ? '+' : '−';
+
+    const variance = document.getElementById('variance');
+    variance.classList.remove('positive', 'negative', 'onTarget');
+
+    let label, detail;
+    if (actual > lastMax) {
+      variance.classList.add('positive');
+      label = 'Above max — crushed it';
+      detail = `Beat the good-night ceiling of $${lastMax.toFixed(2)}`;
+    } else if (actual < lastMin) {
+      variance.classList.add('negative');
+      label = 'Below min — rough night';
+      detail = `Under the bad-night floor of $${lastMin.toFixed(2)}`;
+    } else if (Math.abs(pctDiff) < 5) {
+      variance.classList.add('onTarget');
+      label = 'On target';
+      detail = `Within 5% of the projection`;
+    } else if (diff > 0) {
+      variance.classList.add('positive');
+      label = 'Above average';
+      detail = `Between base and max`;
+    } else {
+      variance.classList.add('negative');
+      label = 'Below average';
+      detail = `Between min and base`;
+    }
+
+    variance.innerHTML = `
+      <div class="variance-amount">${sign}${fmt(diff)} (${sign}${Math.abs(pctDiff).toFixed(1)}%)</div>
+      <div class="variance-label">${label}</div>
+      <div class="variance-detail">${detail} · Actual: $${actual.toFixed(2)} vs projected: $${lastBase.toFixed(2)}</div>
+    `;
+    variance.classList.add('show');
+  }
+
+  document.querySelectorAll('input').forEach(input => {
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        if (e.target.id === 'actual') compare();
+        else calculate();
+      }
+    });
+  });
+</script>
+</body>
+</html>
