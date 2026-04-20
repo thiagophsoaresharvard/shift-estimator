@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shift Estimator</title>
+<title>Shift Estimator v2</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -18,7 +18,7 @@
   }
   .container {
     width: 100%;
-    max-width: 440px;
+    max-width: 460px;
     background: rgba(20, 25, 50, 0.85);
     border: 1px solid rgba(100, 180, 255, 0.2);
     border-radius: 16px;
@@ -34,11 +34,17 @@
     letter-spacing: 0.5px;
   }
   .subtitle {
-    font-size: 13px;
+    font-size: 12px;
     color: #8a93a8;
-    margin-bottom: 24px;
+    margin-bottom: 4px;
   }
-  .input-group { margin-bottom: 16px; }
+  .model-info {
+    font-size: 11px;
+    color: #6a7489;
+    margin-bottom: 20px;
+    font-style: italic;
+  }
+  .input-group { margin-bottom: 14px; }
   label {
     display: block;
     font-size: 13px;
@@ -48,7 +54,7 @@
   }
   input {
     width: 100%;
-    padding: 14px 16px;
+    padding: 13px 16px;
     font-size: 17px;
     background: rgba(10, 15, 35, 0.7);
     border: 1px solid rgba(100, 180, 255, 0.25);
@@ -62,7 +68,30 @@
     border-color: #64b4ff;
     box-shadow: 0 0 0 3px rgba(100, 180, 255, 0.15);
   }
-  button {
+  .shift-type-group {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+  .shift-btn {
+    padding: 11px 4px;
+    font-size: 13px;
+    font-weight: 500;
+    background: rgba(10, 15, 35, 0.7);
+    border: 1px solid rgba(100, 180, 255, 0.25);
+    border-radius: 8px;
+    color: #a8b2c8;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .shift-btn.active {
+    background: rgba(100, 180, 255, 0.2);
+    border-color: #64b4ff;
+    color: #64b4ff;
+    font-weight: 600;
+  }
+  button.primary {
     width: 100%;
     padding: 14px;
     font-size: 16px;
@@ -74,12 +103,12 @@
     cursor: pointer;
     margin-top: 8px;
     letter-spacing: 0.3px;
-    transition: transform 0.1s, box-shadow 0.2s;
+    transition: transform 0.1s;
   }
-  button:active { transform: scale(0.98); }
+  button.primary:active { transform: scale(0.98); }
   .results {
-    margin-top: 24px;
-    padding-top: 24px;
+    margin-top: 22px;
+    padding-top: 22px;
     border-top: 1px solid rgba(100, 180, 255, 0.15);
     display: none;
   }
@@ -95,8 +124,8 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 14px 16px;
-    margin-bottom: 8px;
+    padding: 13px 16px;
+    margin-bottom: 7px;
     border-radius: 10px;
     background: rgba(10, 15, 35, 0.5);
   }
@@ -109,37 +138,52 @@
   .result-row.base .result-value { color: #64b4ff; font-size: 24px; }
   .result-row.min .result-value { color: #ff9b6a; }
   .result-row.max .result-value { color: #6ae89b; }
-  .per-cover {
+  .per-guest {
     text-align: center;
-    margin-top: 16px;
-    padding: 12px;
-    font-size: 13px;
+    margin-top: 14px;
+    padding: 10px;
+    font-size: 12px;
     color: #8a93a8;
     background: rgba(10, 15, 35, 0.4);
     border-radius: 8px;
   }
-  .per-cover span { color: #e8ecf4; font-weight: 500; }
+  .per-guest span { color: #e8ecf4; font-weight: 500; }
+  .event-warning {
+    margin-top: 12px;
+    padding: 10px 14px;
+    background: rgba(255, 155, 106, 0.1);
+    border: 1px solid rgba(255, 155, 106, 0.3);
+    border-radius: 8px;
+    font-size: 12px;
+    color: #ffb78a;
+    display: none;
+  }
+  .event-warning.show { display: block; }
   .actual-section {
-    margin-top: 20px;
-    padding-top: 20px;
+    margin-top: 18px;
+    padding-top: 18px;
     border-top: 1px solid rgba(100, 180, 255, 0.15);
   }
   .secondary-btn {
+    width: 100%;
+    padding: 12px;
+    font-size: 14px;
+    font-weight: 600;
     background: linear-gradient(135deg, #4a5578 0%, #3a4560 100%);
     color: #e8ecf4;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
     margin-top: 8px;
   }
   .variance {
-    margin-top: 16px;
-    padding: 16px;
+    margin-top: 14px;
+    padding: 14px;
     border-radius: 10px;
     text-align: center;
     display: none;
   }
-  .variance.show {
-    display: block;
-    animation: fadeIn 0.3s ease;
-  }
+  .variance.show { display: block; animation: fadeIn 0.3s ease; }
   .variance.positive {
     background: rgba(106, 232, 155, 0.12);
     border: 1px solid rgba(106, 232, 155, 0.35);
@@ -152,21 +196,31 @@
     background: rgba(100, 180, 255, 0.12);
     border: 1px solid rgba(100, 180, 255, 0.35);
   }
-  .variance-amount { font-size: 24px; font-weight: 600; margin-bottom: 4px; }
+  .variance-amount { font-size: 22px; font-weight: 600; margin-bottom: 4px; }
   .variance.positive .variance-amount { color: #6ae89b; }
   .variance.negative .variance-amount { color: #ff9b6a; }
   .variance.onTarget .variance-amount { color: #64b4ff; }
   .variance-label { font-size: 13px; color: #a8b2c8; }
-  .variance-detail { font-size: 12px; color: #8a93a8; margin-top: 6px; }
+  .variance-detail { font-size: 11px; color: #8a93a8; margin-top: 5px; }
+  .formula-footer {
+    margin-top: 20px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(100, 180, 255, 0.1);
+    text-align: center;
+    font-size: 10px;
+    color: #6a7489;
+    font-family: "SF Mono", Monaco, monospace;
+  }
 </style>
 </head>
 <body>
   <div class="container">
     <h1>Shift Estimator</h1>
-    <p class="subtitle">Yvonne's — base ± 25%</p>
+    <p class="subtitle">Yvonne's &middot; log-linear model</p>
+    <p class="model-info">Trained on 44 shifts &middot; MAPE 26% &middot; 75% of shifts within &plusmn;25%</p>
 
     <div class="input-group">
-      <label for="covers">Covers</label>
+      <label for="covers">Expected covers tonight</label>
       <input type="number" id="covers" inputmode="numeric" placeholder="e.g. 190">
     </div>
 
@@ -175,69 +229,109 @@
       <input type="number" id="servers" inputmode="numeric" placeholder="e.g. 6">
     </div>
 
-    <div class="input-group">
-      <label for="seats">Seats in your section</label>
-      <input type="number" id="seats" inputmode="numeric" placeholder="e.g. 18">
+    <label>Shift type</label>
+    <div class="shift-type-group">
+      <button class="shift-btn active" data-type="Supper" onclick="selectShift('Supper')">Supper</button>
+      <button class="shift-btn" data-type="Closer" onclick="selectShift('Closer')">Closer</button>
+      <button class="shift-btn" data-type="Library" onclick="selectShift('Library')">Library</button>
+      <button class="shift-btn" data-type="Event" onclick="selectShift('Event')">Event</button>
     </div>
 
-    <button onclick="calculate()">Calculate</button>
+    <button class="primary" onclick="calculate()">Calculate</button>
 
     <div class="results" id="results">
       <div class="result-row min">
-        <span class="result-label">Bad night (min)</span>
-        <span class="result-value" id="minVal">—</span>
+        <span class="result-label">Low end (&minus;25%)</span>
+        <span class="result-value" id="minVal">&mdash;</span>
       </div>
       <div class="result-row base">
-        <span class="result-label">Average</span>
-        <span class="result-value" id="baseVal">—</span>
+        <span class="result-label">Expected</span>
+        <span class="result-value" id="baseVal">&mdash;</span>
       </div>
       <div class="result-row max">
-        <span class="result-label">Good night (max)</span>
-        <span class="result-value" id="maxVal">—</span>
+        <span class="result-label">High end (+25%)</span>
+        <span class="result-value" id="maxVal">&mdash;</span>
       </div>
-      <div class="per-cover">
-        Per cover: <span id="perCover">—</span>
+      <div class="per-guest">
+        Guests: <span id="guestCount">&mdash;</span> &middot; Per guest: <span id="perGuest">&mdash;</span>
+      </div>
+
+      <div class="event-warning" id="eventWarning">
+        Event shifts are unpredictable &mdash; prediction uses the mean of your 4 prior events ($483). Wide variance expected.
       </div>
 
       <div class="actual-section">
-        <label for="actual" style="margin-top: 20px;">Actual earnings (end of shift)</label>
-        <input type="number" id="actual" inputmode="decimal" step="0.01" placeholder="e.g. 310.00">
-        <button onclick="compare()" class="secondary-btn">Compare to projection</button>
+        <label for="actual">Actual earnings (end of shift)</label>
+        <input type="number" id="actual" inputmode="decimal" step="0.01" placeholder="e.g. 450.00">
+        <button class="secondary-btn" onclick="compare()">Compare to projection</button>
         <div class="variance" id="variance"></div>
       </div>
+    </div>
+
+    <div class="formula-footer">
+      Tips = exp(5.540 + 0.0163&middot;G + 0.532&middot;Closer)
     </div>
   </div>
 
 <script>
+  // Model coefficients from regression on 44 non-event shifts
+  const BETA_0 = 5.540;
+  const BETA_GUESTS = 0.0163;
+  const BETA_CLOSER = 0.532;
+
+  // Event model: historical mean from 4 event shifts
+  const EVENT_MEAN = 483;
+
+  let selectedShift = 'Supper';
   let lastBase = null;
   let lastMin = null;
   let lastMax = null;
 
+  function selectShift(type) {
+    selectedShift = type;
+    document.querySelectorAll('.shift-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.type === type);
+    });
+  }
+
   function calculate() {
     const covers = parseFloat(document.getElementById('covers').value);
     const servers = parseFloat(document.getElementById('servers').value);
-    const seats = parseFloat(document.getElementById('seats').value);
 
-    if (!covers || !servers || !seats || servers <= 0 || seats <= 0) {
-      alert('Please enter valid numbers for all fields.');
+    if (!covers || !servers || servers <= 0) {
+      alert('Please enter valid covers and servers.');
       return;
     }
 
-    const base = ((covers / servers) / seats) * covers;
+    const guests = covers / servers;
+    let base;
+
+    if (selectedShift === 'Event') {
+      base = EVENT_MEAN;
+      document.getElementById('eventWarning').classList.add('show');
+    } else {
+      const isCloser = selectedShift === 'Closer' ? 1 : 0;
+      const logTips = BETA_0 + BETA_GUESTS * guests + BETA_CLOSER * isCloser;
+      base = Math.exp(logTips);
+      document.getElementById('eventWarning').classList.remove('show');
+    }
+
     const min = base * 0.75;
     const max = base * 1.25;
-    const perCover = base / covers;
+    const perGuest = base / guests;
 
     lastBase = base;
     lastMin = min;
     lastMax = max;
 
-    const fmt = n => '$' + n.toFixed(2);
+    const fmt = n => '$' + n.toFixed(0);
+    const fmt2 = n => '$' + n.toFixed(2);
 
     document.getElementById('minVal').textContent = fmt(min);
     document.getElementById('baseVal').textContent = fmt(base);
     document.getElementById('maxVal').textContent = fmt(max);
-    document.getElementById('perCover').textContent = fmt(perCover);
+    document.getElementById('guestCount').textContent = guests.toFixed(1);
+    document.getElementById('perGuest').textContent = fmt2(perGuest);
 
     document.getElementById('results').classList.add('show');
     document.getElementById('variance').classList.remove('show');
@@ -254,7 +348,7 @@
     const diff = actual - lastBase;
     const pctDiff = (diff / lastBase) * 100;
     const fmt = n => '$' + Math.abs(n).toFixed(2);
-    const sign = diff >= 0 ? '+' : '−';
+    const sign = diff >= 0 ? '+' : '\u2212';
 
     const variance = document.getElementById('variance');
     variance.classList.remove('positive', 'negative', 'onTarget');
@@ -262,31 +356,30 @@
     let label, detail;
     if (actual > lastMax) {
       variance.classList.add('positive');
-      label = 'Above max — crushed it';
-      detail = `Beat the good-night ceiling of $${lastMax.toFixed(2)}`;
+      label = 'Above high end \u2014 great night';
+      detail = 'Beat the +25% ceiling of $' + lastMax.toFixed(2);
     } else if (actual < lastMin) {
       variance.classList.add('negative');
-      label = 'Below min — rough night';
-      detail = `Under the bad-night floor of $${lastMin.toFixed(2)}`;
+      label = 'Below low end \u2014 rough night';
+      detail = 'Under the \u221225% floor of $' + lastMin.toFixed(2);
     } else if (Math.abs(pctDiff) < 5) {
       variance.classList.add('onTarget');
       label = 'On target';
-      detail = `Within 5% of the projection`;
+      detail = 'Within 5% of the projection';
     } else if (diff > 0) {
       variance.classList.add('positive');
-      label = 'Above average';
-      detail = `Between base and max`;
+      label = 'Above expected';
+      detail = 'Between expected and high end';
     } else {
       variance.classList.add('negative');
-      label = 'Below average';
-      detail = `Between min and base`;
+      label = 'Below expected';
+      detail = 'Between low end and expected';
     }
 
-    variance.innerHTML = `
-      <div class="variance-amount">${sign}${fmt(diff)} (${sign}${Math.abs(pctDiff).toFixed(1)}%)</div>
-      <div class="variance-label">${label}</div>
-      <div class="variance-detail">${detail} · Actual: $${actual.toFixed(2)} vs projected: $${lastBase.toFixed(2)}</div>
-    `;
+    variance.innerHTML =
+      '<div class="variance-amount">' + sign + fmt(diff) + ' (' + sign + Math.abs(pctDiff).toFixed(1) + '%)</div>' +
+      '<div class="variance-label">' + label + '</div>' +
+      '<div class="variance-detail">' + detail + ' &middot; Actual: $' + actual.toFixed(2) + ' vs projected: $' + lastBase.toFixed(2) + '</div>';
     variance.classList.add('show');
   }
 
