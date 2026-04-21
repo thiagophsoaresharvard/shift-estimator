@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shift Estimator v2</title>
+<title>Shift Estimator v3</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -13,21 +13,48 @@
     min-height: 100vh;
     padding: 20px;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
   }
   .container {
     width: 100%;
-    max-width: 460px;
+    max-width: 480px;
     background: rgba(20, 25, 50, 0.85);
     border: 1px solid rgba(100, 180, 255, 0.2);
     border-radius: 16px;
-    padding: 28px;
+    padding: 24px;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(10px);
   }
+  .tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 20px;
+    padding: 4px;
+    background: rgba(10, 15, 35, 0.5);
+    border-radius: 10px;
+  }
+  .tab {
+    flex: 1;
+    padding: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    color: #8a93a8;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .tab.active {
+    background: rgba(100, 180, 255, 0.2);
+    color: #64b4ff;
+    font-weight: 600;
+  }
+  .page { display: none; }
+  .page.active { display: block; }
   h1 {
-    font-size: 22px;
+    font-size: 20px;
     font-weight: 600;
     margin-bottom: 4px;
     color: #64b4ff;
@@ -41,10 +68,10 @@
   .model-info {
     font-size: 11px;
     color: #6a7489;
-    margin-bottom: 20px;
+    margin-bottom: 18px;
     font-style: italic;
   }
-  .input-group { margin-bottom: 14px; }
+  .input-group { margin-bottom: 12px; }
   label {
     display: block;
     font-size: 13px;
@@ -52,18 +79,19 @@
     margin-bottom: 6px;
     font-weight: 500;
   }
-  input {
+  input, select {
     width: 100%;
-    padding: 13px 16px;
-    font-size: 17px;
+    padding: 12px 14px;
+    font-size: 16px;
     background: rgba(10, 15, 35, 0.7);
     border: 1px solid rgba(100, 180, 255, 0.25);
     border-radius: 10px;
     color: #e8ecf4;
     transition: border-color 0.2s, box-shadow 0.2s;
     -webkit-appearance: none;
+    font-family: inherit;
   }
-  input:focus {
+  input:focus, select:focus {
     outline: none;
     border-color: #64b4ff;
     box-shadow: 0 0 0 3px rgba(100, 180, 255, 0.15);
@@ -75,8 +103,8 @@
     margin-bottom: 14px;
   }
   .shift-btn {
-    padding: 11px 4px;
-    font-size: 13px;
+    padding: 10px 4px;
+    font-size: 12px;
     font-weight: 500;
     background: rgba(10, 15, 35, 0.7);
     border: 1px solid rgba(100, 180, 255, 0.25);
@@ -93,80 +121,22 @@
   }
   button.primary {
     width: 100%;
-    padding: 14px;
-    font-size: 16px;
+    padding: 13px;
+    font-size: 15px;
     font-weight: 600;
     background: linear-gradient(135deg, #64b4ff 0%, #4a90e2 100%);
     color: #0a0e27;
     border: none;
     border-radius: 10px;
     cursor: pointer;
-    margin-top: 8px;
+    margin-top: 6px;
     letter-spacing: 0.3px;
     transition: transform 0.1s;
   }
   button.primary:active { transform: scale(0.98); }
-  .results {
-    margin-top: 22px;
-    padding-top: 22px;
-    border-top: 1px solid rgba(100, 180, 255, 0.15);
-    display: none;
-  }
-  .results.show {
-    display: block;
-    animation: fadeIn 0.3s ease;
-  }
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  .result-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 13px 16px;
-    margin-bottom: 7px;
-    border-radius: 10px;
-    background: rgba(10, 15, 35, 0.5);
-  }
-  .result-row.base {
-    background: rgba(100, 180, 255, 0.1);
-    border: 1px solid rgba(100, 180, 255, 0.3);
-  }
-  .result-label { font-size: 14px; color: #a8b2c8; }
-  .result-value { font-size: 20px; font-weight: 600; color: #e8ecf4; }
-  .result-row.base .result-value { color: #64b4ff; font-size: 24px; }
-  .result-row.min .result-value { color: #ff9b6a; }
-  .result-row.max .result-value { color: #6ae89b; }
-  .per-guest {
-    text-align: center;
-    margin-top: 14px;
-    padding: 10px;
-    font-size: 12px;
-    color: #8a93a8;
-    background: rgba(10, 15, 35, 0.4);
-    border-radius: 8px;
-  }
-  .per-guest span { color: #e8ecf4; font-weight: 500; }
-  .event-warning {
-    margin-top: 12px;
-    padding: 10px 14px;
-    background: rgba(255, 155, 106, 0.1);
-    border: 1px solid rgba(255, 155, 106, 0.3);
-    border-radius: 8px;
-    font-size: 12px;
-    color: #ffb78a;
-    display: none;
-  }
-  .event-warning.show { display: block; }
-  .actual-section {
-    margin-top: 18px;
-    padding-top: 18px;
-    border-top: 1px solid rgba(100, 180, 255, 0.15);
-  }
   .secondary-btn {
     width: 100%;
-    padding: 12px;
+    padding: 11px;
     font-size: 14px;
     font-weight: 600;
     background: linear-gradient(135deg, #4a5578 0%, #3a4560 100%);
@@ -176,9 +146,64 @@
     cursor: pointer;
     margin-top: 8px;
   }
+  .results {
+    margin-top: 20px;
+    padding-top: 18px;
+    border-top: 1px solid rgba(100, 180, 255, 0.15);
+    display: none;
+  }
+  .results.show { display: block; animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .result-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 11px 14px;
+    margin-bottom: 6px;
+    border-radius: 10px;
+    background: rgba(10, 15, 35, 0.5);
+  }
+  .result-row.base {
+    background: rgba(100, 180, 255, 0.1);
+    border: 1px solid rgba(100, 180, 255, 0.3);
+  }
+  .result-label { font-size: 13px; color: #a8b2c8; }
+  .result-value { font-size: 18px; font-weight: 600; color: #e8ecf4; }
+  .result-row.base .result-value { color: #64b4ff; font-size: 22px; }
+  .result-row.min .result-value { color: #ff9b6a; }
+  .result-row.max .result-value { color: #6ae89b; }
+  .per-guest {
+    text-align: center;
+    margin-top: 12px;
+    padding: 9px;
+    font-size: 11px;
+    color: #8a93a8;
+    background: rgba(10, 15, 35, 0.4);
+    border-radius: 8px;
+  }
+  .per-guest span { color: #e8ecf4; font-weight: 500; }
+  .event-warning {
+    margin-top: 10px;
+    padding: 9px 12px;
+    background: rgba(255, 155, 106, 0.1);
+    border: 1px solid rgba(255, 155, 106, 0.3);
+    border-radius: 8px;
+    font-size: 11px;
+    color: #ffb78a;
+    display: none;
+  }
+  .event-warning.show { display: block; }
+  .actual-section {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(100, 180, 255, 0.15);
+  }
   .variance {
-    margin-top: 14px;
-    padding: 14px;
+    margin-top: 12px;
+    padding: 12px;
     border-radius: 10px;
     text-align: center;
     display: none;
@@ -196,101 +221,434 @@
     background: rgba(100, 180, 255, 0.12);
     border: 1px solid rgba(100, 180, 255, 0.35);
   }
-  .variance-amount { font-size: 22px; font-weight: 600; margin-bottom: 4px; }
+  .variance-amount { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
   .variance.positive .variance-amount { color: #6ae89b; }
   .variance.negative .variance-amount { color: #ff9b6a; }
   .variance.onTarget .variance-amount { color: #64b4ff; }
-  .variance-label { font-size: 13px; color: #a8b2c8; }
-  .variance-detail { font-size: 11px; color: #8a93a8; margin-top: 5px; }
+  .variance-label { font-size: 12px; color: #a8b2c8; }
+  .variance-detail { font-size: 10px; color: #8a93a8; margin-top: 4px; }
+  .save-prompt {
+    margin-top: 14px;
+    padding: 12px;
+    background: rgba(100, 180, 255, 0.08);
+    border: 1px dashed rgba(100, 180, 255, 0.4);
+    border-radius: 10px;
+    text-align: center;
+    display: none;
+  }
+  .save-prompt.show { display: block; }
+  .save-prompt p {
+    font-size: 12px;
+    color: #a8b2c8;
+    margin-bottom: 8px;
+  }
+  .save-btn {
+    width: 100%;
+    padding: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    background: linear-gradient(135deg, #6ae89b 0%, #4ac878 100%);
+    color: #0a0e27;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  /* History page */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+  .stat-box {
+    padding: 12px;
+    background: rgba(10, 15, 35, 0.5);
+    border-radius: 10px;
+    text-align: center;
+  }
+  .stat-label {
+    font-size: 10px;
+    color: #8a93a8;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .stat-value {
+    font-size: 18px;
+    font-weight: 600;
+    color: #64b4ff;
+  }
+  .stat-value.small { font-size: 14px; color: #e8ecf4; }
+  .log-list {
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+  .log-entry {
+    padding: 10px 12px;
+    margin-bottom: 6px;
+    background: rgba(10, 15, 35, 0.5);
+    border-radius: 8px;
+    border-left: 3px solid #64b4ff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+  }
+  .log-entry.over { border-left-color: #6ae89b; }
+  .log-entry.under { border-left-color: #ff9b6a; }
+  .log-details {
+    flex: 1;
+  }
+  .log-date {
+    font-size: 11px;
+    color: #8a93a8;
+    margin-bottom: 2px;
+  }
+  .log-main {
+    color: #e8ecf4;
+  }
+  .log-amounts {
+    text-align: right;
+    font-size: 11px;
+  }
+  .log-actual {
+    color: #e8ecf4;
+    font-weight: 600;
+    font-size: 14px;
+  }
+  .log-projected {
+    color: #8a93a8;
+  }
+  .log-delete {
+    background: none;
+    border: none;
+    color: #8a93a8;
+    font-size: 14px;
+    cursor: pointer;
+    margin-left: 8px;
+    padding: 4px 8px;
+  }
+  .log-delete:hover { color: #ff9b6a; }
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #8a93a8;
+    font-size: 13px;
+  }
+  .action-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 14px;
+  }
+  .action-btn {
+    padding: 10px;
+    font-size: 12px;
+    font-weight: 500;
+    background: rgba(10, 15, 35, 0.7);
+    border: 1px solid rgba(100, 180, 255, 0.25);
+    border-radius: 8px;
+    color: #a8b2c8;
+    cursor: pointer;
+  }
+  .action-btn:hover { color: #64b4ff; border-color: #64b4ff; }
+  .action-btn.danger:hover { color: #ff9b6a; border-color: #ff9b6a; }
   .formula-footer {
-    margin-top: 20px;
-    padding-top: 14px;
+    margin-top: 18px;
+    padding-top: 12px;
     border-top: 1px solid rgba(100, 180, 255, 0.1);
     text-align: center;
     font-size: 10px;
     color: #6a7489;
     font-family: "SF Mono", Monaco, monospace;
+    word-break: break-all;
   }
 </style>
 </head>
 <body>
   <div class="container">
-    <h1>Shift Estimator</h1>
-    <p class="subtitle">Yvonne's &middot; log-linear model</p>
-    <p class="model-info">Trained on 44 shifts &middot; MAPE 26% &middot; 75% of shifts within &plusmn;25%</p>
-
-    <div class="input-group">
-      <label for="covers">Expected covers tonight</label>
-      <input type="number" id="covers" inputmode="numeric" placeholder="e.g. 190">
+    <div class="tabs">
+      <button class="tab active" onclick="showPage('estimator')">Estimator</button>
+      <button class="tab" onclick="showPage('history')">History</button>
     </div>
 
-    <div class="input-group">
-      <label for="servers">Servers on floor</label>
-      <input type="number" id="servers" inputmode="numeric" placeholder="e.g. 6">
+    <!-- PAGE 1: ESTIMATOR -->
+    <div class="page active" id="page-estimator">
+      <h1>Shift Estimator</h1>
+      <p class="subtitle">Yvonne's &middot; self-learning log-linear model</p>
+      <p class="model-info" id="modelInfo">Loading model...</p>
+
+      <div class="input-group">
+        <label for="covers">Expected covers tonight</label>
+        <input type="number" id="covers" inputmode="numeric" placeholder="e.g. 190">
+      </div>
+
+      <div class="input-group">
+        <label for="servers">Servers on floor</label>
+        <input type="number" id="servers" inputmode="numeric" placeholder="e.g. 6">
+      </div>
+
+      <label>Shift type</label>
+      <div class="shift-type-group">
+        <button class="shift-btn active" data-type="Supper" onclick="selectShift('Supper')">Supper</button>
+        <button class="shift-btn" data-type="Closer" onclick="selectShift('Closer')">Closer</button>
+        <button class="shift-btn" data-type="Library" onclick="selectShift('Library')">Library</button>
+        <button class="shift-btn" data-type="Event" onclick="selectShift('Event')">Event</button>
+      </div>
+
+      <button class="primary" onclick="calculate()">Calculate</button>
+
+      <div class="results" id="results">
+        <div class="result-row min">
+          <span class="result-label">Low end (&minus;25%)</span>
+          <span class="result-value" id="minVal">&mdash;</span>
+        </div>
+        <div class="result-row base">
+          <span class="result-label">Expected</span>
+          <span class="result-value" id="baseVal">&mdash;</span>
+        </div>
+        <div class="result-row max">
+          <span class="result-label">High end (+25%)</span>
+          <span class="result-value" id="maxVal">&mdash;</span>
+        </div>
+        <div class="per-guest">
+          Guests: <span id="guestCount">&mdash;</span> &middot; Per guest: <span id="perGuest">&mdash;</span>
+        </div>
+
+        <div class="event-warning" id="eventWarning">
+          Event shifts are unpredictable &mdash; prediction uses the historical event mean. Wide variance expected.
+        </div>
+
+        <div class="actual-section">
+          <label for="actual">Actual earnings (end of shift)</label>
+          <input type="number" id="actual" inputmode="decimal" step="0.01" placeholder="e.g. 450.00">
+
+          <label style="margin-top: 10px;" for="actualGuests">Actual guests served</label>
+          <input type="number" id="actualGuests" inputmode="numeric" placeholder="e.g. 32">
+
+          <label style="margin-top: 10px;">Shift type worked (confirm or change)</label>
+          <div class="shift-type-group">
+            <button class="shift-btn active" data-actual-type="Supper" onclick="selectActualShift('Supper')">Supper</button>
+            <button class="shift-btn" data-actual-type="Closer" onclick="selectActualShift('Closer')">Closer</button>
+            <button class="shift-btn" data-actual-type="Library" onclick="selectActualShift('Library')">Library</button>
+            <button class="shift-btn" data-actual-type="Event" onclick="selectActualShift('Event')">Event</button>
+          </div>
+
+          <button class="secondary-btn" onclick="compare()">Compare to projection</button>
+          <div class="variance" id="variance"></div>
+
+          <div class="save-prompt" id="savePrompt">
+            <p>Log this shift to improve future predictions?</p>
+            <button class="save-btn" onclick="saveShift()">Save &amp; retrain model</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="formula-footer" id="formulaFooter"></div>
     </div>
 
-    <label>Shift type</label>
-    <div class="shift-type-group">
-      <button class="shift-btn active" data-type="Supper" onclick="selectShift('Supper')">Supper</button>
-      <button class="shift-btn" data-type="Closer" onclick="selectShift('Closer')">Closer</button>
-      <button class="shift-btn" data-type="Library" onclick="selectShift('Library')">Library</button>
-      <button class="shift-btn" data-type="Event" onclick="selectShift('Event')">Event</button>
-    </div>
+    <!-- PAGE 2: HISTORY -->
+    <div class="page" id="page-history">
+      <h1>Shift History</h1>
+      <p class="subtitle" id="historySubtitle">Loading...</p>
 
-    <button class="primary" onclick="calculate()">Calculate</button>
+      <div class="stats-grid" id="statsGrid"></div>
 
-    <div class="results" id="results">
-      <div class="result-row min">
-        <span class="result-label">Low end (&minus;25%)</span>
-        <span class="result-value" id="minVal">&mdash;</span>
-      </div>
-      <div class="result-row base">
-        <span class="result-label">Expected</span>
-        <span class="result-value" id="baseVal">&mdash;</span>
-      </div>
-      <div class="result-row max">
-        <span class="result-label">High end (+25%)</span>
-        <span class="result-value" id="maxVal">&mdash;</span>
-      </div>
-      <div class="per-guest">
-        Guests: <span id="guestCount">&mdash;</span> &middot; Per guest: <span id="perGuest">&mdash;</span>
+      <label style="margin-top: 4px;">Logged shifts</label>
+      <div class="log-list" id="logList">
+        <div class="empty-state">No shifts logged yet.<br>Save a shift from the Estimator tab.</div>
       </div>
 
-      <div class="event-warning" id="eventWarning">
-        Event shifts are unpredictable &mdash; prediction uses the mean of your 4 prior events ($483). Wide variance expected.
+      <div class="action-row">
+        <button class="action-btn" onclick="exportCSV()">Export CSV</button>
+        <button class="action-btn danger" onclick="clearLogs()">Clear all logs</button>
       </div>
-
-      <div class="actual-section">
-        <label for="actual">Actual earnings (end of shift)</label>
-        <input type="number" id="actual" inputmode="decimal" step="0.01" placeholder="e.g. 450.00">
-        <button class="secondary-btn" onclick="compare()">Compare to projection</button>
-        <div class="variance" id="variance"></div>
-      </div>
-    </div>
-
-    <div class="formula-footer">
-      Tips = exp(5.540 + 0.0163&middot;G + 0.532&middot;Closer)
     </div>
   </div>
 
 <script>
-  // Model coefficients from regression on 44 non-event shifts
-  const BETA_0 = 5.540;
-  const BETA_GUESTS = 0.0163;
-  const BETA_CLOSER = 0.532;
+  // ========================================================
+  // BASE TRAINING DATA — 44 non-event shifts from your Excel
+  // Fields: covers, servers, isCloser (1/0), tips
+  // ========================================================
+  const BASE_SHIFTS = [
+    [115,5,0,386.86],[97,3,1,788.83],[264,6,0,502.98],[79,3,0,715.00],
+    [140,5,1,850.49],[185,5,0,377.00],[131,5,0,232.25],[86,3,0,292.75],
+    [131,5,1,760.74],[167,6,0,507.91],[122,4,0,473.31],[140,5,1,469.72],
+    [150,6,0,475.13],[270,6,0,649.73],[200,6,0,479.00],[80,4,0,392.89],
+    [109,5,1,514.04],[125,5,0,331.23],[99,3,0,335.51],[103,4,0,391.53],
+    [173,6,1,569.85],[288,6,0,606.90],[150,4,0,490.18],[133,5,0,880.00],
+    [135,6,1,471.00],[150,5,0,388.22],[208,5,0,527.00],[191,6,1,756.45],
+    [370,8,0,617.49],[205,6,0,273.80],[388,8,0,679.00],[240,6,0,144.44],
+    [158,5,0,420.80],[216,6,1,1408.26],[232,5,0,570.68],[150,6,0,452.76],
+    [272,6,0,479.50],[175,5,0,368.56],[213,5,0,741.97],[245,6,0,473.01],
+    [240,5,0,722.20],[223,6,0,601.33],[260,6,0,442.80],[219,5,0,424.83]
+  ];
 
-  // Event model: historical mean from 4 event shifts
-  const EVENT_MEAN = 483;
+  // Event shifts (separate model — just use mean)
+  const BASE_EVENT_TIPS = [452.41, 522.76, 469.46, 489.27];
+
+  const STORAGE_KEY = 'yvonnes_shift_log_v1';
+
+  // ========================================================
+  // REGRESSION: solve log(tips) = b0 + b1*guests + b2*closer
+  // using ordinary least squares via normal equations
+  // ========================================================
+  function fitModel(shifts) {
+    // shifts: array of [covers, servers, isCloser, tips]
+    // returns {b0, b1, b2, n}
+    const n = shifts.length;
+    if (n < 3) return { b0: 5.540, b1: 0.0163, b2: 0.532, n: 0 }; // fallback to base coefficients
+
+    // Build design matrix X (n x 3) and response y (n x 1)
+    // X columns: [1, guests, isCloser]
+    // y: log(tips)
+    const X = shifts.map(s => [1, s[0]/s[1], s[2]]);
+    const y = shifts.map(s => Math.log(s[3]));
+
+    // Compute X'X (3x3) and X'y (3x1)
+    const XtX = [[0,0,0],[0,0,0],[0,0,0]];
+    const Xty = [0,0,0];
+    for (let i = 0; i < n; i++) {
+      for (let j = 0; j < 3; j++) {
+        Xty[j] += X[i][j] * y[i];
+        for (let k = 0; k < 3; k++) {
+          XtX[j][k] += X[i][j] * X[i][k];
+        }
+      }
+    }
+
+    // Solve 3x3 linear system XtX * beta = Xty via Gaussian elimination
+    const A = XtX.map((row, i) => [...row, Xty[i]]);
+    for (let i = 0; i < 3; i++) {
+      // Find pivot
+      let maxRow = i;
+      for (let k = i+1; k < 3; k++) {
+        if (Math.abs(A[k][i]) > Math.abs(A[maxRow][i])) maxRow = k;
+      }
+      [A[i], A[maxRow]] = [A[maxRow], A[i]];
+      // Eliminate
+      for (let k = i+1; k < 3; k++) {
+        const factor = A[k][i] / A[i][i];
+        for (let j = i; j < 4; j++) A[k][j] -= factor * A[i][j];
+      }
+    }
+    // Back-substitute
+    const beta = [0,0,0];
+    for (let i = 2; i >= 0; i--) {
+      let sum = A[i][3];
+      for (let j = i+1; j < 3; j++) sum -= A[i][j] * beta[j];
+      beta[i] = sum / A[i][i];
+    }
+
+    return { b0: beta[0], b1: beta[1], b2: beta[2], n: n };
+  }
+
+  // Compute MAPE on given shifts with given model
+  function computeMAPE(shifts, model) {
+    if (shifts.length === 0) return 0;
+    let totalPctErr = 0;
+    for (const s of shifts) {
+      const guests = s[0] / s[1];
+      const predicted = Math.exp(model.b0 + model.b1 * guests + model.b2 * s[2]);
+      totalPctErr += Math.abs(predicted - s[3]) / s[3];
+    }
+    return (totalPctErr / shifts.length) * 100;
+  }
+
+  // ========================================================
+  // STATE
+  // ========================================================
+  let logs = []; // user-logged shifts: {date, covers, servers, shiftType, projected, actual, guests}
+  let currentModel = null;
+  let eventMean = BASE_EVENT_TIPS.reduce((a,b)=>a+b,0) / BASE_EVENT_TIPS.length;
 
   let selectedShift = 'Supper';
-  let lastBase = null;
-  let lastMin = null;
-  let lastMax = null;
+  let selectedActualShift = 'Supper';
+  let lastCalc = null; // {covers, servers, shiftType, base, min, max, guests}
 
+  // ========================================================
+  // LOAD & PERSIST
+  // ========================================================
+  function loadLogs() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      logs = raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      logs = [];
+    }
+  }
+
+  function saveLogs() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(logs));
+  }
+
+  // ========================================================
+  // RETRAIN MODEL — combines base + logged shifts
+  // ========================================================
+  function retrainModel() {
+    // Combine base shifts with user logs (non-event only)
+    // For user logs: if actual guests were recorded, use them directly; otherwise fall back to covers/servers
+    // Training format: [pseudo_covers, pseudo_servers, isCloser, tips]
+    // We pass guests through by using [guests, 1, isCloser, tips] — since fitModel computes covers/servers
+    const userShifts = logs
+      .filter(l => l.shiftType !== 'Event')
+      .map(l => {
+        const isCloser = l.shiftType === 'Closer' ? 1 : 0;
+        // Encode actual guests by passing [guests, 1, ...] so covers/servers = guests in the regression
+        return [l.guests, 1, isCloser, l.actual];
+      });
+
+    const allNonEvent = [...BASE_SHIFTS, ...userShifts];
+    currentModel = fitModel(allNonEvent);
+
+    // Update event mean with user event logs
+    const userEventTips = logs.filter(l => l.shiftType === 'Event').map(l => l.actual);
+    const allEventTips = [...BASE_EVENT_TIPS, ...userEventTips];
+    eventMean = allEventTips.reduce((a,b)=>a+b,0) / allEventTips.length;
+
+    // Compute current MAPE on user logs (held out from training initially, useful for tracking)
+    const userMAPE = computeMAPE(
+      userShifts.length > 0 ? userShifts : BASE_SHIFTS,
+      currentModel
+    );
+
+    // Update UI
+    const totalShifts = allNonEvent.length;
+    const userCount = userShifts.length + userEventTips.length;
+    document.getElementById('modelInfo').textContent =
+      `Trained on ${totalShifts} shifts (${userCount} logged by you) · MAPE ~${userMAPE.toFixed(0)}%`;
+
+    document.getElementById('formulaFooter').textContent =
+      `Tips = exp(${currentModel.b0.toFixed(3)} + ${currentModel.b1.toFixed(4)}·G + ${currentModel.b2.toFixed(3)}·Closer)`;
+  }
+
+  // ========================================================
+  // PAGE SWITCHING
+  // ========================================================
+  function showPage(page) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('page-' + page).classList.add('active');
+    event.target.classList.add('active');
+    if (page === 'history') renderHistory();
+  }
+
+  // ========================================================
+  // ESTIMATOR
+  // ========================================================
   function selectShift(type) {
     selectedShift = type;
-    document.querySelectorAll('.shift-btn').forEach(b => {
+    document.querySelectorAll('.shift-btn[data-type]').forEach(b => {
       b.classList.toggle('active', b.dataset.type === type);
+    });
+  }
+
+  function selectActualShift(type) {
+    selectedActualShift = type;
+    document.querySelectorAll('.shift-btn[data-actual-type]').forEach(b => {
+      b.classList.toggle('active', b.dataset.actualType === type);
     });
   }
 
@@ -307,12 +665,11 @@
     let base;
 
     if (selectedShift === 'Event') {
-      base = EVENT_MEAN;
+      base = eventMean;
       document.getElementById('eventWarning').classList.add('show');
     } else {
       const isCloser = selectedShift === 'Closer' ? 1 : 0;
-      const logTips = BETA_0 + BETA_GUESTS * guests + BETA_CLOSER * isCloser;
-      base = Math.exp(logTips);
+      base = Math.exp(currentModel.b0 + currentModel.b1 * guests + currentModel.b2 * isCloser);
       document.getElementById('eventWarning').classList.remove('show');
     }
 
@@ -320,9 +677,7 @@
     const max = base * 1.25;
     const perGuest = base / guests;
 
-    lastBase = base;
-    lastMin = min;
-    lastMax = max;
+    lastCalc = { covers, servers, shiftType: selectedShift, base, min, max, guests };
 
     const fmt = n => '$' + n.toFixed(0);
     const fmt2 = n => '$' + n.toFixed(2);
@@ -335,18 +690,23 @@
 
     document.getElementById('results').classList.add('show');
     document.getElementById('variance').classList.remove('show');
+    document.getElementById('savePrompt').classList.remove('show');
     document.getElementById('actual').value = '';
+    document.getElementById('actualGuests').value = '';
+
+    // Sync the actual-earnings shift selector to match the estimator shift
+    selectActualShift(selectedShift);
   }
 
   function compare() {
     const actual = parseFloat(document.getElementById('actual').value);
-    if (!actual || actual < 0 || lastBase === null) {
+    if (!actual || actual < 0 || lastCalc === null) {
       alert('Please enter your actual earnings.');
       return;
     }
 
-    const diff = actual - lastBase;
-    const pctDiff = (diff / lastBase) * 100;
+    const diff = actual - lastCalc.base;
+    const pctDiff = (diff / lastCalc.base) * 100;
     const fmt = n => '$' + Math.abs(n).toFixed(2);
     const sign = diff >= 0 ? '+' : '\u2212';
 
@@ -354,14 +714,14 @@
     variance.classList.remove('positive', 'negative', 'onTarget');
 
     let label, detail;
-    if (actual > lastMax) {
+    if (actual > lastCalc.max) {
       variance.classList.add('positive');
       label = 'Above high end \u2014 great night';
-      detail = 'Beat the +25% ceiling of $' + lastMax.toFixed(2);
-    } else if (actual < lastMin) {
+      detail = 'Beat the +25% ceiling of $' + lastCalc.max.toFixed(2);
+    } else if (actual < lastCalc.min) {
       variance.classList.add('negative');
       label = 'Below low end \u2014 rough night';
-      detail = 'Under the \u221225% floor of $' + lastMin.toFixed(2);
+      detail = 'Under the \u221225% floor of $' + lastCalc.min.toFixed(2);
     } else if (Math.abs(pctDiff) < 5) {
       variance.classList.add('onTarget');
       label = 'On target';
@@ -379,10 +739,151 @@
     variance.innerHTML =
       '<div class="variance-amount">' + sign + fmt(diff) + ' (' + sign + Math.abs(pctDiff).toFixed(1) + '%)</div>' +
       '<div class="variance-label">' + label + '</div>' +
-      '<div class="variance-detail">' + detail + ' &middot; Actual: $' + actual.toFixed(2) + ' vs projected: $' + lastBase.toFixed(2) + '</div>';
+      '<div class="variance-detail">' + detail + ' &middot; Actual: $' + actual.toFixed(2) + ' vs projected: $' + lastCalc.base.toFixed(2) + '</div>';
     variance.classList.add('show');
+
+    // Show save prompt
+    lastCalc.actual = actual;
+    document.getElementById('savePrompt').classList.add('show');
   }
 
+  function saveShift() {
+    if (!lastCalc || lastCalc.actual == null) return;
+    const today = new Date();
+    const dateStr = today.toISOString().slice(0,10);
+
+    // Use actual guests if provided, otherwise fall back to the covers/servers estimate
+    const actualGuestsInput = parseFloat(document.getElementById('actualGuests').value);
+    const guestsToLog = (actualGuestsInput && actualGuestsInput > 0)
+      ? actualGuestsInput
+      : lastCalc.guests;
+
+    // Use the confirmed shift type from the end-of-shift selector, not the original estimate
+    logs.push({
+      date: dateStr,
+      covers: lastCalc.covers,
+      servers: lastCalc.servers,
+      shiftType: selectedActualShift,
+      guests: guestsToLog,
+      guestsWereActual: (actualGuestsInput && actualGuestsInput > 0) ? true : false,
+      projected: lastCalc.base,
+      actual: lastCalc.actual
+    });
+
+    saveLogs();
+    retrainModel();
+
+    // Feedback
+    const btn = event.target;
+    const origText = btn.textContent;
+    btn.textContent = '\u2713 Saved & retrained';
+    btn.disabled = true;
+    setTimeout(() => {
+      document.getElementById('savePrompt').classList.remove('show');
+      btn.textContent = origText;
+      btn.disabled = false;
+    }, 1500);
+  }
+
+  // ========================================================
+  // HISTORY PAGE
+  // ========================================================
+  function renderHistory() {
+    const list = document.getElementById('logList');
+    const statsGrid = document.getElementById('statsGrid');
+    const subtitle = document.getElementById('historySubtitle');
+
+    if (logs.length === 0) {
+      list.innerHTML = '<div class="empty-state">No shifts logged yet.<br>Save a shift from the Estimator tab.</div>';
+      statsGrid.innerHTML = '';
+      subtitle.textContent = 'No data yet';
+      return;
+    }
+
+    // Compute stats
+    const totalEarned = logs.reduce((sum, l) => sum + l.actual, 0);
+    const avgActual = totalEarned / logs.length;
+    const avgProjected = logs.reduce((sum, l) => sum + l.projected, 0) / logs.length;
+    const avgErr = logs.reduce((sum, l) => sum + Math.abs(l.actual - l.projected) / l.projected, 0) / logs.length * 100;
+    const bestShift = logs.reduce((best, l) => l.actual > best.actual ? l : best, logs[0]);
+    const worstShift = logs.reduce((worst, l) => l.actual < worst.actual ? l : worst, logs[0]);
+
+    subtitle.textContent = `${logs.length} shifts logged &middot; $${totalEarned.toFixed(0)} total earned`;
+
+    statsGrid.innerHTML =
+      '<div class="stat-box"><div class="stat-label">Avg actual</div><div class="stat-value">$' + avgActual.toFixed(0) + '</div></div>' +
+      '<div class="stat-box"><div class="stat-label">Avg projected</div><div class="stat-value">$' + avgProjected.toFixed(0) + '</div></div>' +
+      '<div class="stat-box"><div class="stat-label">Avg error</div><div class="stat-value">' + avgErr.toFixed(0) + '%</div></div>' +
+      '<div class="stat-box"><div class="stat-label">Best / Worst</div><div class="stat-value small">$' + bestShift.actual.toFixed(0) + ' / $' + worstShift.actual.toFixed(0) + '</div></div>';
+
+    // Render list (newest first)
+    const sorted = [...logs].reverse();
+    list.innerHTML = sorted.map((l, displayIdx) => {
+      const actualIdx = logs.length - 1 - displayIdx;
+      const diff = l.actual - l.projected;
+      const pctDiff = (diff / l.projected) * 100;
+      const cls = diff >= 0 ? 'over' : 'under';
+      const sign = diff >= 0 ? '+' : '\u2212';
+      const guestLabel = l.guestsWereActual ? 'guests' : 'est. guests';
+      return '<div class="log-entry ' + cls + '">' +
+        '<div class="log-details">' +
+          '<div class="log-date">' + l.date + ' &middot; ' + l.shiftType + '</div>' +
+          '<div class="log-main">' + l.covers + ' cov / ' + l.servers + ' srv / ' + l.guests.toFixed(0) + ' ' + guestLabel + '</div>' +
+        '</div>' +
+        '<div class="log-amounts">' +
+          '<div class="log-actual">$' + l.actual.toFixed(0) + '</div>' +
+          '<div class="log-projected">proj $' + l.projected.toFixed(0) + ' (' + sign + Math.abs(pctDiff).toFixed(0) + '%)</div>' +
+        '</div>' +
+        '<button class="log-delete" onclick="deleteLog(' + actualIdx + ')" title="Delete">&times;</button>' +
+      '</div>';
+    }).join('');
+  }
+
+  function deleteLog(idx) {
+    if (!confirm('Delete this shift entry?')) return;
+    logs.splice(idx, 1);
+    saveLogs();
+    retrainModel();
+    renderHistory();
+  }
+
+  function exportCSV() {
+    if (logs.length === 0) {
+      alert('No logs to export yet.');
+      return;
+    }
+    const header = 'Date,ShiftType,Covers,Servers,Guests,GuestsSource,Projected,Actual,DifferenceDollars,DifferencePct\n';
+    const rows = logs.map(l => {
+      const diff = l.actual - l.projected;
+      const pct = (diff / l.projected * 100).toFixed(1);
+      const guestsSource = l.guestsWereActual ? 'actual' : 'estimated';
+      return [l.date, l.shiftType, l.covers, l.servers, l.guests.toFixed(1), guestsSource,
+              l.projected.toFixed(2), l.actual.toFixed(2), diff.toFixed(2), pct].join(',');
+    }).join('\n');
+    const csv = header + rows;
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'yvonnes_shift_log_' + new Date().toISOString().slice(0,10) + '.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function clearLogs() {
+    if (!confirm('Clear ALL logged shifts? This cannot be undone.\n\nTip: Export to CSV first if you want a backup.')) return;
+    if (!confirm('Really clear all logs? Final warning.')) return;
+    logs = [];
+    saveLogs();
+    retrainModel();
+    renderHistory();
+  }
+
+  // ========================================================
+  // ENTER KEY SUPPORT
+  // ========================================================
   document.querySelectorAll('input').forEach(input => {
     input.addEventListener('keydown', e => {
       if (e.key === 'Enter') {
@@ -391,6 +892,12 @@
       }
     });
   });
+
+  // ========================================================
+  // INIT
+  // ========================================================
+  loadLogs();
+  retrainModel();
 </script>
 </body>
 </html>
